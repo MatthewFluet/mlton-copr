@@ -1,6 +1,6 @@
 Name:		mlton
 Version:	20180207
-Release:	3%{?dist}
+Release:	4%{?dist}
 Summary:	Whole-program optimizing compiler for Standard ML
 
 Group:		Development/Languages
@@ -13,7 +13,12 @@ Source0:	http://downloads.sourceforge.net/%{name}/%{name}-%{version}.src.tgz
 # in /usr/lib64, rather than /usr/lib. Thus, when installing it is
 # necessary to compute and set the relative path of TLIB to TBIN when
 # installing $(TBIN)/mlton.
+# Fixed upstream; this patch to be removed after next upstream release
 Patch0:		https://github.com/MLton/mlton/pull/250.diff
+
+# Use Unix newline for asciidoc output
+# Fixed upstream; this patch to be removed after next upstream release
+Patch1:		https://github.com/MLton/mlton/pull/251.diff
 
 BuildRequires:	gcc gmp-devel mlton
 Requires:	gcc gmp-devel
@@ -51,12 +56,15 @@ as a lexer generator, a parser generator, and a profiler.
 %prep
 %autosetup -p1
 # quell rpmlint warnings: wrong-file-end-of-line-encoding
+# Although "fixed" by Patch1, mlton-20180207.src.tgz ships with generated HTML
+# (to allow downstream packaging to skip building documentation) that has DOS
+# newlines.  The following converts DOS newlines to Unix newlines in the
+# provided HTML (that will be installed via the `make install-docs` below.
+# Fixed upstream; this shell command to be removed after next upstream release
 ( cd doc/guide/localhost ; find . -maxdepth 1 -type f -exec sed -i 's/\r$//' '{}' ';' )
 
 %build
-
 make CFLAGS="$RPM_OPT_FLAGS" all
-
 
 %install
 make DESTDIR=$RPM_BUILD_ROOT bindir=%{_bindir} libdir=%{_libdir} mandir=%{_mandir} docdir=%{_pkgdocdir} install-no-strip install-docs
@@ -73,6 +81,11 @@ for f in $RPM_BUILD_ROOT%{_bindir}/mlton $RPM_BUILD_ROOT%{_libdir}/mlton/static-
 
 
 %changelog
+* Sat Feb 17 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-4
+- Add upstream patch to use Unix newline for asciidoc output
+- Add comments noting items fixed upstream and to be removed from spec file
+  after next upstream release.
+
 * Sat Feb 17 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-3
 - Use autosetup -p1, rather than setup -q && patch -p1
 - Revise description
