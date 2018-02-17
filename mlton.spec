@@ -61,7 +61,7 @@ make CFLAGS="$RPM_OPT_FLAGS" all
 %install
 make DESTDIR=$RPM_BUILD_ROOT bindir=%{_bindir} libdir=%{_libdir} mandir=%{_mandir} docdir=%{_pkgdocdir} install-no-strip install-docs
 # quell rpmlint errors: wrong-script-interpreter
-for f in %{_bindir}/mlton %{_libdir}/mlton/static-library; do sed -i 's|/usr/bin/env bash|/bin/bash|' "$f"; done
+for f in $RPM_BUILD_ROOT%{_bindir}/mlton $RPM_BUILD_ROOT%{_libdir}/mlton/static-library; do sed -i 's|/usr/bin/env bash|/bin/bash|' "$f"; done
 
 
 %files
