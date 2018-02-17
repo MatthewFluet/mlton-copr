@@ -1,6 +1,6 @@
 Name:		mlton
 Version:	20180207
-Release:	4%{?dist}
+Release:	5%{?dist}
 Summary:	Whole-program optimizing compiler for Standard ML
 
 Group:		Development/Languages
@@ -28,14 +28,9 @@ Requires:	gcc gmp-devel
 ExcludeArch:	aarch64 %{power64} s390x
 
 
-# filter out false dependencies
-%{?filter_setup:
-%filter_provides_in %{_docdir}
-%filter_requires_in %{_docdir}
-%filter_provides_in %{_libdir}/mlton/sml
-%filter_requires_in %{_libdir}/mlton/sml
-%filter_setup
-}
+# Per policy, don't provide or require anything from _docdir
+%global __provides_exclude_from ^%{_docdir}/.*$
+%global __requires_exclude_from ^%{_docdir}/.*$
 
 
 %description
@@ -81,6 +76,12 @@ for f in $RPM_BUILD_ROOT%{_bindir}/mlton $RPM_BUILD_ROOT%{_libdir}/mlton/static-
 
 
 %changelog
+* Sat Feb 17 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-5
+- Replace old filter_{provides,requires}_in macros with global
+  _{provides,requires}_exclude_from globals; moreover, it is not necessary to
+  exclude _libdir/mlton/sml as upstream has fixed the installation of SML
+  libraries to only install source SML files.
+
 * Sat Feb 17 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-4
 - Add upstream patch to use Unix newline for asciidoc output
 - Add comments noting items fixed upstream and to be removed from spec file
