@@ -1,6 +1,12 @@
+#%ifarch %{arm} ppc ppc64
+#%global mlton_bootstrap 1
+#%else
+%global mlton_bootstrap 0
+#%endif
+
 Name:		mlton
 Version:	20180207
-Release:	5%{?dist}
+Release:	6%{?dist}
 Summary:	Whole-program optimizing compiler for Standard ML
 
 Group:		Development/Languages
@@ -20,12 +26,22 @@ Patch0:		https://github.com/MLton/mlton/pull/250.diff
 # Fixed upstream; this patch to be removed after next upstream release
 Patch1:		https://github.com/MLton/mlton/pull/251.diff
 
-BuildRequires:	gcc gmp-devel mlton
-Requires:	gcc gmp-devel
-
 
 # Needs bootrap on these arches
 ExcludeArch:	aarch64 %{power64} s390x
+
+Requires:	gcc gmp-devel
+%if !%{mlton_bootstrap}
+BuildRequires:	gcc gmp-devel mlton
+%else
+BuildRequires:	gcc gmp-devel
+%endif
+
+# bootstrap sources
+#Source100:	%{name}-%{version}.ppc.tar.xz
+#Source101:	%{name}-%{version}.ppc64.tar.xz
+#Source102:	%{name}-%{version}.arm.tar.xz
+#Source103:	%{name}-%{version}.armhfp.tar.xz
 
 
 # Per policy, don't provide or require anything from _docdir
@@ -54,11 +70,39 @@ as a lexer generator, a parser generator, and a profiler.
 # Although "fixed" by Patch1, mlton-20180207.src.tgz ships with generated HTML
 # (to allow downstream packaging to skip building documentation) that has DOS
 # newlines.  The following converts DOS newlines to Unix newlines in the
-# provided HTML (that will be installed via the `make install-docs` below.
+# provided HTML (that will be installed via the `make install-docs` below).
 # Fixed upstream; this shell command to be removed after next upstream release
 ( cd doc/guide/localhost ; find . -maxdepth 1 -type f -exec sed -i 's/\r$//' '{}' ';' )
 
+%if %{mlton_bootstrap}
+# unpack the architecture specific bootstrap binary
+
+%ifarch ppc
+%setup -T -D -q -a 100
+%endif
+
+%ifarch ppc64
+%setup -T -D -q -a 101
+%endif
+
+%if %{_target_cpu} == armv5tel
+%setup -T -D -q -a 102
+%endif
+
+%if %{_target_cpu} == armv7hl
+%setup -T -D -q -a 103
+%endif
+
+# replace lib variable with correct path
+sed -i 's/\(^lib=\).*$/\1\$MLTON_BOOTSTRAP_DIR\/%{_lib}\/mlton/g' \
+    usr/bin/mlton
+%endif
+
 %build
+%if %{mlton_bootstrap}
+export MLTON_BOOTSTRAP_DIR=$(pwd)/usr
+export PATH="${PATH}":$MLTON_BOOTSTRAP_DIR/bin
+%endif
 make CFLAGS="$RPM_OPT_FLAGS" all
 
 %install
@@ -68,24 +112,26 @@ for f in $RPM_BUILD_ROOT%{_bindir}/mlton $RPM_BUILD_ROOT%{_libdir}/mlton/static-
 
 
 %files
+%doc %{_pkgdocdir}
 %{_bindir}/ml*
 %{_libdir}/mlton
 %{_mandir}/man1/*
-%{_pkgdocdir}
-%doc
 
 
 %changelog
+* Sat Feb 17 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-6
+- Restore mlton_bootstrap code to minimize diff with previous Fedora spec file
+
 * Sat Feb 17 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-5
 - Replace old filter_{provides,requires}_in macros with global
   _{provides,requires}_exclude_from globals; moreover, it is not necessary to
-  exclude _libdir/mlton/sml as upstream has fixed the installation of SML
-  libraries to only install source SML files.
+  exclude _libdir/mlton/sml as upstream now only installs source SML files when
+  installing SML libraries
 
 * Sat Feb 17 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-4
 - Add upstream patch to use Unix newline for asciidoc output
 - Add comments noting items fixed upstream and to be removed from spec file
-  after next upstream release.
+  after next upstream release
 
 * Sat Feb 17 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-3
 - Use autosetup -p1, rather than setup -q && patch -p1
@@ -103,6 +149,15 @@ for f in $RPM_BUILD_ROOT%{_bindir}/mlton $RPM_BUILD_ROOT%{_libdir}/mlton/static-
 * Wed Feb 14 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-1
 - New upstream release: http://mlton.org/Release20180207
 - Drop patch to not call mprotect with PROT_EXEC; fixed upstream
+- Drop mlton_bootstrap code
+- Drop tex(latex) from BuildRequires as mlton-20180207.src.tgz ships with
+  generated documentation
+
+* Thu Feb 08 2018 Fedora Release Engineering <releng@fedoraproject.org> - 20130715-14
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
+
+* Thu Aug 03 2017 Fedora Release Engineering <releng@fedoraproject.org> - 20130715-13
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Binutils_Mass_Rebuild
 
 * Wed Jul 26 2017 Fedora Release Engineering <releng@fedoraproject.org> - 20130715-12
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
