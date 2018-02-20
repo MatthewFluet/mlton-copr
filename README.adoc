@@ -1,4 +1,4 @@
-= mlton-copr
+= https://copr.fedorainfracloud.org/coprs/matthewfluet/MLton/[mlton-copr]
 Matthew Fluet <Matthew.Fluet@gmail.com>
 
 ifdef::env-github[]
@@ -11,6 +11,6 @@ RPM spec file for building/packaging http://mlton.org[MLton] via https://copr.fe
 
 [source,shell]
 ----
-# dnf copr enable matthewfluet/MLton
-# dnf install mlton
+# sudo dnf copr enable matthewfluet/MLton
+# sudo dnf install mlton
 ----
