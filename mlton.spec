@@ -6,7 +6,7 @@
 
 Name:		mlton
 Version:	20180207
-Release:	6%{?dist}
+Release:	7%{?dist}
 Summary:	Whole-program optimizing compiler for Standard ML
 
 Group:		Development/Languages
@@ -25,6 +25,12 @@ Patch0:		https://github.com/MLton/mlton/pull/250.diff
 # Use Unix newline for asciidoc output
 # Fixed upstream; this patch to be removed after next upstream release
 Patch1:		https://github.com/MLton/mlton/pull/251.diff
+
+# x86 updates
+# Replace obsolete -malign-* gcc flags with -falign-* gcc flags
+# Add {size3,int-inf.rep{3,4}}.x86-linux.ok regression outputs
+# Fixed upstream; this patch to be removed after next upstream release
+Patch2:		https://github.com/MLton/mlton/pull/252.diff
 
 
 # Needs bootrap on these arches
@@ -119,6 +125,9 @@ for f in $RPM_BUILD_ROOT%{_bindir}/mlton $RPM_BUILD_ROOT%{_libdir}/mlton/static-
 
 
 %changelog
+* Mon Feb 19 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-7
+- Add upstream patch with x86-updates
+
 * Sat Feb 17 2018 Matthew Fluet <Matthew.Fluet@gmail.com> - 20180207-6
 - Restore mlton_bootstrap code to minimize diff with previous Fedora spec file
 
